@@ -5,11 +5,14 @@ namespace Compwright\OAuth2_Quickbooks_Online;
 use League\OAuth2\Client\Provider\AbstractProvider;
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;
 use League\OAuth2\Client\Token\AccessToken;
+use League\OAuth2\Client\Tool\BearerAuthorizationTrait;
 use Psr\Http\Message\ResponseInterface;
 use RuntimeException;
 
 class QuickbooksProvider extends AbstractProvider
 {
+    use BearerAuthorizationTrait;
+
     public const SCOPE_ACCOUNTING = 'com.intuit.quickbooks.accounting';
 
     public const API_URL_PRODUCTION = 'https://quickbooks.api.intuit.com';
@@ -81,7 +84,7 @@ class QuickbooksProvider extends AbstractProvider
         }
 
         return sprintf(
-            '/v3/company/%s/companyinfo/%s?minorversion=%s',
+            '%s/v3/company/%s/companyinfo/%s?minorversion=%s',
             $this->apiUrl,
             $token->getResourceOwnerId(),
             $token->getResourceOwnerId(),
@@ -106,5 +109,15 @@ class QuickbooksProvider extends AbstractProvider
     protected function createResourceOwner(array $response, AccessToken $token)
     {
         return new QuickbooksCompany($response, $token->getResourceOwnerId());
+    }
+
+    /**
+     * @inheritdoc
+     */
+    protected function getDefaultHeaders()
+    {
+        return [
+            'Accept' => 'application/json',
+        ];
     }
 }
